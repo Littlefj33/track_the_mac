@@ -20,13 +20,14 @@ interface EventPointTrackerProps {
 }
 
 const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, events_women }) => {
-	console.log(events_women);
 	const [selectedColleges, setSelectedColleges] = useState<string[]>([]);
 	const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 	const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
 	const [showEventDropdown, setShowEventDropdown] = useState(false);
 	const [selectedStatus, setSelectedStatus] = useState<string>("");
 	const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+	const [collegeSearch, setCollegeSearch] = useState("");
+	const [eventSearch, setEventSearch] = useState("");
 
 	const teamNames: string[] = [
 		"Albright",
@@ -80,6 +81,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 
 	const renderLeaderboard = (scores: { [key: string]: number }) => {
 		const sortedTeams = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+		const filteredTeams = sortedTeams.filter((team) => selectedColleges.length === 0 || selectedColleges.includes(team));
 		return (
 			<div className="mt-4">
 				<table className="min-w-full bg-white border-black border-2">
@@ -91,9 +93,9 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 						</tr>
 					</thead>
 					<tbody>
-						{sortedTeams.map((team, index) => (
+						{filteredTeams.map((team, index) => (
 							<tr key={index} className="text-center">
-								<td className="py-2 px-4 border border-black">{index + 1}</td>
+								<td className="py-2 px-4 border border-black">{sortedTeams.indexOf(team) + 1}</td>
 								<td className="py-2 px-4 border border-black">{team}</td>
 								<td className="py-2 px-4 border border-black">{scores[team]}</td>
 							</tr>
@@ -107,23 +109,28 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 	const menScores = calculateTotalScores(events_men);
 	const womenScores = calculateTotalScores(events_women);
 
+	const filteredTeamNames = teamNames.filter((team) => team.toLowerCase().includes(collegeSearch.toLowerCase()));
+	const filteredEventNames = [...new Set([...events_men, ...events_women].map((event) => event.eventName))].filter((eventName) => eventName.toLowerCase().includes(eventSearch.toLowerCase()));
+
 	return (
 		<div className="overflow-x-auto text-black space-y-5 bg-white">
-			<h1 className="text-2xl font-bold text-start">Event Point Tracker</h1>
+			<h1 className="text-3xl font-bold text-center">Track The MAC</h1>
+			<h3 className="text-xl text-center">Refresh site to update data</h3>
 
-			<div className="flex space-x-4">
+			<div className="flex flex-col sm:flex-row justify-start space-y-5 sm:space-y-0 sm:space-x-5">
 				<div>
-					<button onClick={() => setShowCollegeDropdown(!showCollegeDropdown)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black border sm:text-base rounded-md">
+					<button onClick={() => setShowCollegeDropdown(!showCollegeDropdown)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black border sm:text-base rounded-md ">
 						Filter by College
 					</button>
 					{showCollegeDropdown && (
 						<div className="absolute mt-1 w-fit border border-black rounded-md bg-white shadow-lg z-50 max-h-60 overflow-y-auto">
 							<div className="py-1">
+								<input type="text" placeholder="Search Colleges" value={collegeSearch} onChange={(e) => setCollegeSearch(e.target.value)} className="w-full px-4 py-2 border-b" />
 								<label className="flex items-center px-4 py-2 border-b">
 									<input type="checkbox" checked={selectedColleges.length === teamNames.length} onChange={() => setSelectedColleges(selectedColleges.length === teamNames.length ? [] : teamNames)} className="form-checkbox" />
 									<span className="ml-2">Select All</span>
 								</label>
-								{teamNames.map((team, index) => (
+								{filteredTeamNames.map((team, index) => (
 									<label key={index} className="flex items-center px-4 py-2 border-b">
 										<input type="checkbox" checked={selectedColleges.includes(team)} onChange={() => handleCollegeChange(team)} className="form-checkbox" />
 										<span className="ml-2">{team}</span>
@@ -140,6 +147,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 					{showEventDropdown && (
 						<div className="absolute mt-1 w-fit rounded-md bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
 							<div className="py-1">
+								<input type="text" placeholder="Search Events" value={eventSearch} onChange={(e) => setEventSearch(e.target.value)} className="w-full px-4 py-2 border-b" />
 								<label className="flex items-center px-4 py-2 border-b">
 									<input
 										type="checkbox"
@@ -153,7 +161,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 									/>
 									<span className="ml-2">Select All</span>
 								</label>
-								{[...new Set([...events_men, ...events_women].map((event) => event.eventName))].map((eventName, index) => (
+								{filteredEventNames.map((eventName, index) => (
 									<label key={index} className="flex items-center px-4 py-2 border-b">
 										<input type="checkbox" checked={selectedEvents.includes(eventName)} onChange={() => handleEventChange(eventName)} className="form-checkbox" />
 										<span className="ml-2">{eventName}</span>
@@ -188,6 +196,9 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 				</div>
 			</div>
 
+			<h2 className="text-2xl/tight font-bold text-center pt-5">Current Leaderboard</h2>
+			<h2 className="text-xl/tight text-center">Contains live projected results</h2>
+
 			<div className="flex flex-col md:flex-row justify-center space-y-5 md:space-y-0 md:space-x-5">
 				<div className="w-full md:w-1/2">
 					<h3 className="text-lg font-bold text-center">Men</h3>
@@ -199,7 +210,8 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 				</div>
 			</div>
 
-			<h2 className="text-xl font-bold text-start">Men&apos;s</h2>
+			<h2 className="text-2xl font-bold text-center pt-5">Results (Projected & Actual)</h2>
+			<h2 className="text-xl font-bold text-center">Men&apos;s</h2>
 			<div className="overflow-x-auto">
 				<table className="min-w-full bg-white border-black border-2">
 					<thead>
@@ -253,7 +265,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 				</table>
 			</div>
 
-			<h2 className="text-xl font-bold text-start">Women&apos;s</h2>
+			<h2 className="text-xl font-bold text-center pt-5">Women&apos;s</h2>
 			<div className="overflow-x-auto">
 				<table className="min-w-full bg-white border-black border-2">
 					<thead>

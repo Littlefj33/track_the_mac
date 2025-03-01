@@ -18,7 +18,7 @@ export async function GET() {
 			const $ = cheerio.load(html);
 
 			const event_name = $("h3.event-results-hdr").first().text().trim();
-			const status = $("h4.round-results-hdr").text().trim();
+			const status = $("h4.round-results-hdr").first().text().trim();
 			const results: { [team: string]: number } = {};
 
 			const rows = $(".results-table.table.table-striped.table-bordered.table-condensed > tbody > tr").slice(0, 8);
@@ -35,11 +35,11 @@ export async function GET() {
 					// Use PL column for Heptathlon and Pentathlon events
 					const currentPlace = parseInt(currentRow.find(".place").text().trim(), 10);
 					points = scores[currentPlace - 1] || 0;
-				} else if (currentRow.find(".points").length > 0) {
-					// Table with Pts column
+				} else if (currentRow.find(".points").length > 0 && currentRow.find(".points").text().trim() !== "") {
+					// Table with Pts column and it has data
 					points = parseFloat(currentRow.find(".points").text().trim());
 				} else {
-					// Table without Pts column, use PL column
+					// Table without Pts column or Pts column is empty, use PL column
 					const currentPlace = parseInt(currentRow.find(".place").text().trim(), 10);
 					points = scores[currentPlace - 1] || 0;
 				}

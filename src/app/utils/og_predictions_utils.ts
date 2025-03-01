@@ -90,7 +90,8 @@ const formatEventName = (eventName: string): string => {
 
 const fetchActualResults = async (): Promise<{ event_name: string; scoring: { [team: string]: number }; status: string }[]> => {
 	// Update return type
-	const response = await fetch("https://track-the-mac.vercel.app/api/scrape_results");
+	// const response = await fetch("http://localhost:3000/api/scrape_results"); // LOCAL
+	const response = await fetch("https://track-the-mac.vercel.app/api/scrape_results"); // PROD
 	const resultsArray = await response.json();
 
 	return resultsArray.map((event: { event_name: string; scoring: { [team: string]: number }; status: string }) => ({
@@ -119,6 +120,7 @@ export const getEventData = async (): Promise<DayData> => {
 
 	// Calculate scores for each event
 	const events_MEN: EventData[] = performance_list_predictions_MEN.map((event) => {
+		event.event_name = formatEventName(event.event_name);
 		const actualEvent = actualResults.find((result) => result.event_name === event.event_name);
 		const colleges: CollegeData[] = teamNames.map((team) => {
 			const projected = event.scoring[team] || 0;
@@ -144,6 +146,7 @@ export const getEventData = async (): Promise<DayData> => {
 	});
 
 	const events_WOMEN: EventData[] = performance_list_predictions_WOMEN.map((event) => {
+		event.event_name = formatEventName(event.event_name);
 		const actualEvent = actualResults.find((result) => formatEventName(result.event_name) === event.event_name);
 		const colleges: CollegeData[] = teamNames.map((team) => {
 			const projected = event.scoring[team] || 0;
@@ -167,9 +170,6 @@ export const getEventData = async (): Promise<DayData> => {
 			status: actualEvent ? actualEvent.status : "Prelims", // Add status
 		};
 	});
-
-	console.log("Men's Total Scores:", totalScores_MEN);
-	console.log("Women's Total Scores:", totalScores_WOMEN);
 
 	return {
 		events_MEN,
