@@ -1,5 +1,5 @@
 // app/page.tsx
-import Dashboard from "./components/dashboard";
+// import Dashboard from "./components/dashboard";
 import EventPointTracker from "./components/eventPointTracker";
 import { getEventData } from "./utils/og_predictions_utils";
 

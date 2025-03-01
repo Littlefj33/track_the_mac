@@ -1,4 +1,3 @@
-// app/components/Dashboard.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,8 +29,12 @@ export default function Dashboard() {
 			const json = await res.json();
 			setData(json);
 			setLoading(false);
-		} catch (err: any) {
-			setError(err.message);
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				setError(err.message);
+			} else {
+				setError("An unknown error occurred");
+			}
 			setLoading(false);
 		}
 	};

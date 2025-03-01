@@ -26,7 +26,7 @@ export async function GET() {
 
 			let tieCount = 1;
 			let totalPoints = scores[currentScoreIndex];
-			let tiedTeams = [currentTeam];
+			const tiedTeams = [currentTeam];
 
 			// Check for ties
 			for (let k = j + 1; k < rows.length; k++) {

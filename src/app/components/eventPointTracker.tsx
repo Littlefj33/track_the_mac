@@ -34,7 +34,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 		"Eastern",
 		"FDU-Florham",
 		"Hood",
-		"King's (Pa.)",
+		"King&apos;s (Pa.)",
 		"Lebanon Valley",
 		"Lycoming",
 		"Messiah",
@@ -115,7 +115,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 				</div>
 			</div>
 
-			<h2 className="text-xl font-bold text-start">Men's</h2>
+			<h2 className="text-xl font-bold text-start">Men&apos;s</h2>
 			<div className="overflow-x-auto">
 				<table className="min-w-full bg-white border-black border-2">
 					<thead>
@@ -169,7 +169,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 				</table>
 			</div>
 
-			<h2 className="text-xl font-bold text-start">Women's</h2>
+			<h2 className="text-xl font-bold text-start">Women&apos;s</h2>
 			<div className="overflow-x-auto">
 				<table className="min-w-full bg-white border-black border-2">
 					<thead>
