@@ -12,6 +12,7 @@ interface CollegeData {
 interface EventData {
 	eventName: string;
 	colleges: CollegeData[];
+	status: string; // Add this line
 }
 
 interface EventPointTrackerProps {
@@ -24,6 +25,8 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 	const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 	const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
 	const [showEventDropdown, setShowEventDropdown] = useState(false);
+	const [selectedStatus, setSelectedStatus] = useState<string>(""); // Add this line
+	const [showStatusDropdown, setShowStatusDropdown] = useState(false); // Add this line
 
 	const teamNames: string[] = [
 		"Albright",
@@ -54,7 +57,12 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 	};
 
 	const filterEvents = (events: EventData[]) => {
-		return events.filter((event) => (selectedEvents.length === 0 || selectedEvents.includes(event.eventName)) && (selectedColleges.length === 0 || event.colleges.some((college) => selectedColleges.includes(college.team))));
+		return events.filter(
+			(event) =>
+				(selectedEvents.length === 0 || selectedEvents.includes(event.eventName)) &&
+				(selectedColleges.length === 0 || event.colleges.some((college) => selectedColleges.includes(college.team))) &&
+				(selectedStatus === "" || event.status === selectedStatus) // Add this line
+		);
 	};
 
 	return (
@@ -113,6 +121,29 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 						</div>
 					)}
 				</div>
+				<div>
+					<button onClick={() => setShowStatusDropdown(!showStatusDropdown)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black border sm:text-base rounded-md">
+						Filter by Status
+					</button>
+					{showStatusDropdown && (
+						<div className="absolute mt-1 w-fit rounded-md bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
+							<div className="py-1">
+								<label className="flex items-center px-4 py-2 border-b">
+									<input type="radio" name="status" value="" checked={selectedStatus === ""} onChange={() => setSelectedStatus("")} className="form-radio" />
+									<span className="ml-2">All</span>
+								</label>
+								<label className="flex items-center px-4 py-2 border-b">
+									<input type="radio" name="status" value="Finals" checked={selectedStatus === "Finals"} onChange={() => setSelectedStatus("Finals")} className="form-radio" />
+									<span className="ml-2">Finals</span>
+								</label>
+								<label className="flex items-center px-4 py-2 border-b">
+									<input type="radio" name="status" value="Prelims" checked={selectedStatus === "Prelims"} onChange={() => setSelectedStatus("Prelims")} className="form-radio" />
+									<span className="ml-2">Prelims & Not Completed</span>
+								</label>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 
 			<h2 className="text-xl font-bold text-start">Men&apos;s</h2>
@@ -156,8 +187,8 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 										(selectedColleges.length === 0 || selectedColleges.includes(team)) && (
 											<React.Fragment key={teamIndex}>
 												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.projected ?? "-"}</td>
-												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-300">{college?.actual ?? "-"}</td>
-												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.difference ?? "-"}</td>
+												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-300">{college?.actual != null && college.actual > -1 ? college.actual : "-"}</td>
+												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.difference != null && college.actual > -1 ? college.difference : "-"}</td>
 												<td className="py-2 px-4 border-b-2 border-r-2 border-1 border-black bg-gray-300">{college?.score ?? "-"}</td>
 											</React.Fragment>
 										)

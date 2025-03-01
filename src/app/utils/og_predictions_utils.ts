@@ -70,6 +70,7 @@ interface CollegeData {
 interface EventData {
 	eventName: string;
 	colleges: CollegeData[];
+	status: string; // Add this line
 }
 
 interface DayData {
@@ -77,48 +78,101 @@ interface DayData {
 	events_WOMEN: EventData[];
 }
 
-export const getEventData = (): DayData => {
+const formatEventName = (eventName: string): string => {
+	return eventName
+		.replace(/#\d+\s(Men's|Women's)\s|\sPerformance List/g, "")
+		.replace(" Meters", "m")
+		.replace(" x ", "x")
+		.replace("Relay", "")
+		.replace("Results", "")
+		.trim();
+};
+
+const fetchActualResults = async (): Promise<{ event_name: string; scoring: { [team: string]: number }; status: string }[]> => {
+	// Update return type
+	const response = await fetch("http://localhost:3000/api/scrape_results");
+	const resultsArray = await response.json();
+
+	return resultsArray.map((event: { event_name: string; scoring: { [team: string]: number }; status: string }) => ({
+		// Update event type
+		...event,
+		event_name: formatEventName(event.event_name),
+	}));
+};
+
+export const getEventData = async (): Promise<DayData> => {
+	const actualResults = await fetchActualResults();
+
+	const totalScores_MEN: { [team: string]: number } = {};
+	const totalScores_WOMEN: { [team: string]: number } = {};
+
+	// Initialize total scores
+	teamNames.forEach((team) => {
+		totalScores_MEN[team] = performance_list_predictions_MEN.reduce((total, event) => {
+			return total + (event.scoring[team] || 0);
+		}, 0);
+
+		totalScores_WOMEN[team] = performance_list_predictions_WOMEN.reduce((total, event) => {
+			return total + (event.scoring[team] || 0);
+		}, 0);
+	});
+
+	// Calculate scores for each event
 	const events_MEN: EventData[] = performance_list_predictions_MEN.map((event) => {
+		const actualEvent = actualResults.find((result) => result.event_name === event.event_name);
 		const colleges: CollegeData[] = teamNames.map((team) => {
 			const projected = event.scoring[team] || 0;
+			const actual = actualEvent ? actualEvent.scoring[team] || 0 : -1;
+			const difference = actual - projected;
+			if (actual > -1) {
+				totalScores_MEN[team] += difference;
+			}
 			return {
 				team,
 				projected,
-				actual: -1,
-				difference: -1,
-				score: -1,
+				actual,
+				difference,
+				score: totalScores_MEN[team],
 			};
 		});
 
 		return {
 			eventName: event.event_name,
 			colleges,
+			status: actualEvent ? actualEvent.status : "Prelims", // Add status
 		};
 	});
 
 	const events_WOMEN: EventData[] = performance_list_predictions_WOMEN.map((event) => {
+		const actualEvent = actualResults.find((result) => formatEventName(result.event_name) === event.event_name);
 		const colleges: CollegeData[] = teamNames.map((team) => {
 			const projected = event.scoring[team] || 0;
+			const actual = actualEvent ? actualEvent.scoring[team] || 0 : -1;
+			const difference = actual - projected;
+			if (actual > -1) {
+				totalScores_WOMEN[team] += difference;
+			}
 			return {
 				team,
 				projected,
-				actual: -1,
-				difference: -1,
-				score: -1,
+				actual,
+				difference,
+				score: totalScores_WOMEN[team],
 			};
 		});
 
 		return {
 			eventName: event.event_name,
 			colleges,
+			status: actualEvent ? actualEvent.status : "Prelims", // Add status
 		};
 	});
+
+	console.log("Men's Total Scores:", totalScores_MEN);
+	console.log("Women's Total Scores:", totalScores_WOMEN);
 
 	return {
 		events_MEN,
 		events_WOMEN,
 	};
 };
-
-// const eventData = getEventData();
-// console.log(eventData);

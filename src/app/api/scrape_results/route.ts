@@ -17,33 +17,27 @@ export async function GET() {
 			const html = await response.text();
 			const $ = cheerio.load(html);
 
-			const event_name = $("h3.event-results-hdr").text().trim();
+			const event_name = $("h3.event-results-hdr").first().text().trim();
 			const status = $("h4.round-results-hdr").text().trim();
 			const results: { [team: string]: number } = {};
 
-			const rows = $(".results-table.table.table-striped.table-bordered.table-condensed tbody tr").slice(0, 8);
-			let currentScoreIndex = 0;
-
-			if (status !== "Finals") {
-				continue; // Skip if the event status is not FINAL
-			}
-
-			let hasPoints = false;
-			if ($(rows[0]).find(".points").length > 0) {
-				hasPoints = true;
+			const rows = $(".results-table.table.table-striped.table-bordered.table-condensed > tbody > tr").slice(0, 8);
+			if (rows.length === 0) {
+				continue; // Skip if there are no table rows
 			}
 
 			for (let j = 0; j < rows.length; j++) {
 				const currentRow = $(rows[j]);
 				const currentTeam = currentRow.find(".team").text().trim();
-				console.log(currentTeam);
 				let points = 0;
 
-				if (hasPoints) {
-					// TODO: Broken
+				if (event_name.includes("Heptathlon") || event_name.includes("Pentathlon")) {
+					// Use PL column for Heptathlon and Pentathlon events
+					const currentPlace = parseInt(currentRow.find(".place").text().trim(), 10);
+					points = scores[currentPlace - 1] || 0;
+				} else if (currentRow.find(".points").length > 0) {
 					// Table with Pts column
-					console.log("Points:", currentRow.find(".points").text().trim());
-					points = parseFloat(currentRow.find("td:nth-child(7)").text().trim());
+					points = parseFloat(currentRow.find(".points").text().trim());
 				} else {
 					// Table without Pts column, use PL column
 					const currentPlace = parseInt(currentRow.find(".place").text().trim(), 10);
