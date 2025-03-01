@@ -90,7 +90,7 @@ const formatEventName = (eventName: string): string => {
 
 const fetchActualResults = async (): Promise<{ event_name: string; scoring: { [team: string]: number }; status: string }[]> => {
 	// Update return type
-	const response = await fetch("http://localhost:3000/api/scrape_results");
+	const response = await fetch("https://track-the-mac.vercel.app/api/scrape_results");
 	const resultsArray = await response.json();
 
 	return resultsArray.map((event: { event_name: string; scoring: { [team: string]: number }; status: string }) => ({
