@@ -28,6 +28,7 @@ export default function Home() {
 		getEventData().then((data) => {
 			setEvents_MEN(data.events_MEN);
 			setEvents_WOMEN(data.events_WOMEN);
+			console.log("Results Data:", data);
 		});
 	}, []);
 
