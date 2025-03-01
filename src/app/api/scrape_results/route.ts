@@ -53,7 +53,7 @@ export async function GET() {
 
 			resultsArray.push({ event_name, status, scoring: results });
 		} catch (error) {
-			console.error(`Error fetching data for event ${i}:`, error);
+			// console.error(`Error fetching data for event ${i}:`, error);
 		}
 	}
 

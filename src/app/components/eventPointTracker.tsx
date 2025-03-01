@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 
 interface CollegeData {
@@ -12,7 +11,7 @@ interface CollegeData {
 interface EventData {
 	eventName: string;
 	colleges: CollegeData[];
-	status: string; // Add this line
+	status: string;
 }
 
 interface EventPointTrackerProps {
@@ -21,12 +20,13 @@ interface EventPointTrackerProps {
 }
 
 const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, events_women }) => {
+	console.log(events_women);
 	const [selectedColleges, setSelectedColleges] = useState<string[]>([]);
 	const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 	const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
 	const [showEventDropdown, setShowEventDropdown] = useState(false);
-	const [selectedStatus, setSelectedStatus] = useState<string>(""); // Add this line
-	const [showStatusDropdown, setShowStatusDropdown] = useState(false); // Add this line
+	const [selectedStatus, setSelectedStatus] = useState<string>("");
+	const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
 	const teamNames: string[] = [
 		"Albright",
@@ -37,7 +37,7 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 		"Eastern",
 		"FDU-Florham",
 		"Hood",
-		"King&apos;s (Pa.)",
+		"King's (Pa.)",
 		"Lebanon Valley",
 		"Lycoming",
 		"Messiah",
@@ -61,9 +61,51 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 			(event) =>
 				(selectedEvents.length === 0 || selectedEvents.includes(event.eventName)) &&
 				(selectedColleges.length === 0 || event.colleges.some((college) => selectedColleges.includes(college.team))) &&
-				(selectedStatus === "" || event.status === selectedStatus) // Add this line
+				(selectedStatus === "" || event.status === selectedStatus)
 		);
 	};
+
+	const calculateTotalScores = (events: EventData[]) => {
+		const scores: { [key: string]: number } = {};
+		events.forEach((event) => {
+			event.colleges.forEach((college) => {
+				if (!scores[college.team]) {
+					scores[college.team] = 0;
+				}
+				scores[college.team] += college.actual > -1 ? college.actual : college.projected;
+			});
+		});
+		return scores;
+	};
+
+	const renderLeaderboard = (scores: { [key: string]: number }) => {
+		const sortedTeams = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+		return (
+			<div className="mt-4">
+				<table className="min-w-full bg-white border-black border-2">
+					<thead>
+						<tr className="bg-gray-200">
+							<th className="py-2 px-4 border border-black">Place</th>
+							<th className="py-2 px-4 border border-black">Team</th>
+							<th className="py-2 px-4 border border-black">Total Score</th>
+						</tr>
+					</thead>
+					<tbody>
+						{sortedTeams.map((team, index) => (
+							<tr key={index} className="text-center">
+								<td className="py-2 px-4 border border-black">{index + 1}</td>
+								<td className="py-2 px-4 border border-black">{team}</td>
+								<td className="py-2 px-4 border border-black">{scores[team]}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		);
+	};
+
+	const menScores = calculateTotalScores(events_men);
+	const womenScores = calculateTotalScores(events_women);
 
 	return (
 		<div className="overflow-x-auto text-black space-y-5 bg-white">
@@ -143,6 +185,17 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 							</div>
 						</div>
 					)}
+				</div>
+			</div>
+
+			<div className="flex flex-col md:flex-row justify-center space-y-5 md:space-y-0 md:space-x-5">
+				<div className="w-full md:w-1/2">
+					<h3 className="text-lg font-bold text-center">Men</h3>
+					{renderLeaderboard(menScores)}
+				</div>
+				<div className="w-full md:w-1/2">
+					<h3 className="text-lg font-bold text-center">Women</h3>
+					{renderLeaderboard(womenScores)}
 				</div>
 			</div>
 
@@ -241,8 +294,8 @@ const EventPointTracker: React.FC<EventPointTrackerProps> = ({ events_men, event
 										(selectedColleges.length === 0 || selectedColleges.includes(team)) && (
 											<React.Fragment key={teamIndex}>
 												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.projected ?? "-"}</td>
-												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-300">{college?.actual ?? "-"}</td>
-												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.difference ?? "-"}</td>
+												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-300">{college?.actual != null && college.actual > -1 ? college.actual : "-"}</td>
+												<td className="py-2 px-4 border-b-2 border-1 border-black bg-gray-100">{college?.difference != null && college.actual > -1 ? college.difference : "-"}</td>
 												<td className="py-2 px-4 border-b-2 border-r-2 border-1 border-black bg-gray-300">{college?.score ?? "-"}</td>
 											</React.Fragment>
 										)
